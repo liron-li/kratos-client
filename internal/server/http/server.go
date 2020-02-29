@@ -3,20 +3,20 @@ package http
 import (
 	"net/http"
 
-	pb "kratos-client/api"
-	"kratos-client/internal/model"
 	"github.com/bilibili/kratos/pkg/conf/paladin"
 	"github.com/bilibili/kratos/pkg/log"
 	bm "github.com/bilibili/kratos/pkg/net/http/blademaster"
+	pb "kratos-client/api"
+	"kratos-client/internal/model"
 )
 
-var svc pb.DemoServer
+var svc pb.ClientServer
 
 // New new a bm server.
-func New(s pb.DemoServer) (engine *bm.Engine, err error) {
+func New(s pb.ClientServer) (engine *bm.Engine, err error) {
 	var (
 		cfg bm.ServerConfig
-		ct paladin.TOML
+		ct  paladin.TOML
 	)
 	if err = paladin.Get("http.toml").Unmarshal(&ct); err != nil {
 		return
@@ -26,7 +26,7 @@ func New(s pb.DemoServer) (engine *bm.Engine, err error) {
 	}
 	svc = s
 	engine = bm.DefaultServer(&cfg)
-	pb.RegisterDemoBMServer(engine, s)
+	pb.RegisterClientBMServer(engine, s)
 	initRouter(engine)
 	err = engine.Start()
 	return

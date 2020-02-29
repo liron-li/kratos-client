@@ -3,21 +3,35 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/bilibili/kratos/pkg/net/rpc/warden"
+	"kratos-client/server"
 
+	"github.com/bilibili/kratos/pkg/conf/paladin"
 	pb "kratos-client/api"
 	"kratos-client/internal/dao"
-	"github.com/bilibili/kratos/pkg/conf/paladin"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/wire"
 )
 
-var Provider = wire.NewSet(New, wire.Bind(new(pb.DemoServer), new(*Service)))
+var Provider = wire.NewSet(New, wire.Bind(new(pb.ClientServer), new(*Service)))
 
 // Service service.
 type Service struct {
-	ac  *paladin.Map
-	dao dao.Dao
+	ac     *paladin.Map
+	dao    dao.Dao
+	server server.ServerClient
+}
+
+func newServer() server.ServerClient {
+	cfg := &warden.ClientConfig{}
+	paladin.Get("grpc.toml").UnmarshalTOML(cfg)
+	var err error
+	var ser server.ServerClient
+	if ser, err = server.NewClient(cfg); err != nil {
+		panic(err)
+	}
+	return ser
 }
 
 // New new a service and return.
@@ -26,6 +40,7 @@ func New(d dao.Dao) (s *Service, cf func(), err error) {
 		ac:  &paladin.TOML{},
 		dao: d,
 	}
+	s.server = newServer()
 	cf = s.Close
 	err = paladin.Watch("application.toml", s.ac)
 	return
@@ -34,6 +49,15 @@ func New(d dao.Dao) (s *Service, cf func(), err error) {
 // SayHello grpc demo func.
 func (s *Service) SayHello(ctx context.Context, req *pb.HelloReq) (reply *empty.Empty, err error) {
 	reply = new(empty.Empty)
+	_, err = s.server.SayHello(ctx, &server.HelloReq{
+		Name:                 req.Name,
+		XXX_NoUnkeyedLiteral: struct{}{},
+		XXX_unrecognized:     nil,
+		XXX_sizecache:        0,
+	})
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("hello %s", req.Name)
 	return
 }
