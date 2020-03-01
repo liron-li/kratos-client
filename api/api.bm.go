@@ -25,12 +25,12 @@ var _ *bm.Context
 var _ context.Context
 var _ binding.StructValidator
 
-var PathDemoPing = "/demo.service.v1.Demo/Ping"
-var PathDemoSayHello = "/demo.service.v1.Demo/SayHello"
-var PathDemoSayHelloURL = "/kratos-demo/say_hello"
+var PathClientPing = "/client.service.v1.Client/Ping"
+var PathClientSayHello = "/client.service.v1.Client/SayHello"
+var PathClientSayHelloURL = "/kratos-demo/say_hello"
 
-// DemoBMServer is the server API for Demo service.
-type DemoBMServer interface {
+// ClientBMServer is the server API for Client service.
+type ClientBMServer interface {
 	Ping(ctx context.Context, req *google_protobuf1.Empty) (resp *google_protobuf1.Empty, err error)
 
 	SayHello(ctx context.Context, req *HelloReq) (resp *google_protobuf1.Empty, err error)
@@ -38,39 +38,39 @@ type DemoBMServer interface {
 	SayHelloURL(ctx context.Context, req *HelloReq) (resp *HelloResp, err error)
 }
 
-var DemoSvc DemoBMServer
+var ClientSvc ClientBMServer
 
-func demoPing(c *bm.Context) {
+func clientPing(c *bm.Context) {
 	p := new(google_protobuf1.Empty)
 	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
 		return
 	}
-	resp, err := DemoSvc.Ping(c, p)
+	resp, err := ClientSvc.Ping(c, p)
 	c.JSON(resp, err)
 }
 
-func demoSayHello(c *bm.Context) {
+func clientSayHello(c *bm.Context) {
 	p := new(HelloReq)
 	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
 		return
 	}
-	resp, err := DemoSvc.SayHello(c, p)
+	resp, err := ClientSvc.SayHello(c, p)
 	c.JSON(resp, err)
 }
 
-func demoSayHelloURL(c *bm.Context) {
+func clientSayHelloURL(c *bm.Context) {
 	p := new(HelloReq)
 	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
 		return
 	}
-	resp, err := DemoSvc.SayHelloURL(c, p)
+	resp, err := ClientSvc.SayHelloURL(c, p)
 	c.JSON(resp, err)
 }
 
-// RegisterDemoBMServer Register the blademaster route
-func RegisterDemoBMServer(e *bm.Engine, server DemoBMServer) {
-	DemoSvc = server
-	e.GET("/demo.service.v1.Demo/Ping", demoPing)
-	e.GET("/demo.service.v1.Demo/SayHello", demoSayHello)
-	e.GET("/kratos-demo/say_hello", demoSayHelloURL)
+// RegisterClientBMServer Register the blademaster route
+func RegisterClientBMServer(e *bm.Engine, server ClientBMServer) {
+	ClientSvc = server
+	e.GET("/client.service.v1.Client/Ping", clientPing)
+	e.GET("/client.service.v1.Client/SayHello", clientSayHello)
+	e.GET("/kratos-demo/say_hello", clientSayHelloURL)
 }
